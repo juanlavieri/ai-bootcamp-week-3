@@ -6,3 +6,6 @@ def hello():
 hello()
 
 # Define the scream function.
+def scream():
+    print("This is the scream function!")
+    print("AAAAHHHHHHHH!")

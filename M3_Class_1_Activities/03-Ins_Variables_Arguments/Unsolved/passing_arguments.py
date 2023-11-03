@@ -1,6 +1,6 @@
-""" Passing Arguments"""
+# """ Passing Arguments"""
 
-# 1a. Positional arguments.
+# # 1a. Positional arguments.
 def positional(x, y):
     """This function adds two positional arguments,
     adds them and prints the total"""
@@ -10,7 +10,7 @@ def positional(x, y):
 if __name__ == "__main__":
     positional(5,12)
 
-# 1b. Positional arguments.
+# # 1b. Positional arguments.
 def savings(balance, apr, days):
     """This function adds two positional arguments,
     adds them and prints the total"""
@@ -21,11 +21,11 @@ def savings(balance, apr, days):
 
 if __name__ == "__main__":
     # Incorrect order.
-    savings(5, 31, 50000)
+    #savings(5, 31, 50000)
     # Correct order
-    # savings(50000, 3, 31)
+    savings(50000, 3, 31)
 
-# 2. Keyword arguments.
+# # 2. Keyword arguments.
 def keyword(a, b, c):
     """This function takes three keyword arguments,
     adds them, and prints the total"""
@@ -35,7 +35,7 @@ def keyword(a, b, c):
 if __name__ == "__main__":
     keyword(a=-3, c=10, b=5)
 
-# 3. Keyword and positional arguments
+# # 3. Keyword and positional arguments
 def pos_key_args(a, b, c):
     """This function takes one positional argument
     and two keyword arguments, adds them, and prints the total"""
@@ -43,10 +43,10 @@ def pos_key_args(a, b, c):
     print(f"The total is: {total}")
 
 if __name__ == "__main__":
-    pos_key_args(42, b=-10, c=5)
-    # pos_key_args(b=-10, c=5, 42) uncomment this line and run again.
+   pos_key_args(42, b=-10, c=5)
+    #  pos_key_args(b=-10, c=5, 42) #uncomment this line and run again.
 
-# 4. Iterable unpacking arguments
+# # 4. Iterable unpacking arguments
 def iterable(a, b, c):
     """This function takes an iterable (list of tuple)
     and adds the values in the iterable, and prints the total"""
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     iterable(*tuple_values)
     iterable(*list_values)
 
-# 5. Dictionary unpacking arguments.
+# # 5. Dictionary unpacking arguments.
 def dictionary(a, b, c):
     """This function takes an iterable (list of tuple)
     and adds the values in the iterable, and prints the total"""

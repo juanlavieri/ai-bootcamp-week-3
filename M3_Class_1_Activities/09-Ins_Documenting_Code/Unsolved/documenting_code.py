@@ -1,24 +1,31 @@
-def my_function(parameter1, parameter2):
+def calculate_average(numbers):
     """
-    Brief description of the function.
-
-   Optional:
-     More detailed description of what the function does.
+    Calculates the average of a list of numbers.
 
     Args:
-        arg1 (type): Description of arg1.
-        arg2 (type): Description of arg2.
+        numbers (list): A list of numbers.
 
     Returns:
-        type: Description of the return value or print statement.
+        float: The average of the numbers in the list.
 
     Raises:
-        ErrorType: Description of the exception raised, if any.
+        TypeError: If the argument is not a list.
 
     Examples:
-        Provide some usage examples of the function.
+        >>> calculate_average([1, 2, 3, 4, 5])
+        3.0
+        >>> calculate_average([10, 20, 30])
+        20.0
+        >>> calculate_average([])
+        0.0
 
     Note:
-        Any additional notes about the function.
+        This function uses the built-in `sum` function to calculate the sum of the numbers in the list,
+        and then divides by the length of the list to get the average. If the list is empty, the function
+        returns 0.0 to avoid a division by zero error.
     """
-    # Function code here
+    if not isinstance(numbers, list):
+        raise TypeError("Argument must be a list.")
+    if len(numbers) == 0:
+        return 0.0
+    return sum(numbers) / len(numbers)
