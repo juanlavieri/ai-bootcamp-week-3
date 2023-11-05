@@ -18,10 +18,14 @@ class Car:
         self.make = new_make
 
     # Create a method to set the model of the car
-
+    def set_model(self, model):
+        """Sets the model of the car"""
+        self.model = model
 
     # Create the get_model method
-
+    def get_model(self):
+        """Gets the model of the car"""
+        return self.model
 
 
 # Create an instance of the Car class.

@@ -70,3 +70,4 @@ class Car:
     def set_color(self, new_color):
         """Sets the make of the car"""
         self.color = new_color
+

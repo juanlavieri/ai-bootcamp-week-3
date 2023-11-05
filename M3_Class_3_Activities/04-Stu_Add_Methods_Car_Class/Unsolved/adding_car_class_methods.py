@@ -43,6 +43,18 @@ class Car:
 
     # Create three setter methods to change three parameters of the `Car` class.
     # YOUR SETTER METHODS GO HERE
+    def set_make(self, new_make):
+        """Sets the make of the car"""
+        self.make = new_make
+
+    def set_model(self, new_model):
+        """Sets the model of the car"""
+        self.model = new_model
+
+    def set_body(self, new_body):    
+        """Sets the body of the car"""
+        self.body = new_body
+    
 
 
 
@@ -61,11 +73,16 @@ print(f"Year made: {car.get_year()}")
 print(f"Color: {car.get_color()}")
 
 # Prompt the user to change the three parameters for the car.
+updated_make = (input("Enter the new make of the car: "))
+updated_model = input("Enter the new model of the car: ")
+updated_body = (input("Enter the new body of the car: "))
 # Hint create new variables for each prompt.
 
 
 # Pass the updated car information from the user to the setter method you created above.
-
+car.set_make(updated_make)
+car.set_model(updated_model)
+car.set_body(updated_body)
 
 # Print the updated information of the car.
 print('Here are the updated details of the car.')
