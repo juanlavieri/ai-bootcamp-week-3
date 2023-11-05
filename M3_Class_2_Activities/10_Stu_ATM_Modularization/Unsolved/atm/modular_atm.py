@@ -1,195 +1,146 @@
-"""This is a basic ATM Application.
+import random
+from utils import load_key, encrypt_message, decrypt_message, load_accounts, save_accounts
 
-This is a program consists of the basic actions of an ATM.
+# Define a class to represent the Bank Account
+class BankAccount:
+    def __init__(self, account_number, pin, balance=0):
+        self.account_number = account_number
+        self.pin = pin
+        self.balance = balance
 
-Example:
-    $ python app.py
-"""
-# Import the dependencies.
-import csv
-import sys
-from pathlib import Path
+    def deposit(self, amount):
+        self.balance += amount
+        print(f"{amount} has been deposited. New balance is {self.balance}.")
 
+    def withdraw(self, amount):
+        if self.balance >= amount:
+            self.balance -= amount
+            print(f"{amount} has been withdrawn. New balance is {self.balance}.")
+        else:
+            print("Insufficient balance.")
 
-def load_accounts():
-    """This function opens the CSV file. And appends each account: the pin and balance,
-    to the accounts lists.
+    def show_balance(self):
+        print(f"The current balance is {self.balance}.")
 
-    Returns:
-        accounts (dict object): A dictionary of all the accounts.
-    """
-    csvpath = Path('data/accounts.csv')
-    accounts = []
-    # Open and read the CSV file.
-    with open(csvpath, newline='', encoding='utf-8') as csvfile:
-        #  Get the rows of the CSV file.
-        rows = csv.reader(csvfile)
-        # Skip reading the header row.
-        header = next(rows)
-        for row in rows:
-            pin = int(row[0])
-            balance = float(row[1])
-            account = {
-                "pin": pin,
-                "balance": balance
-            }
-            accounts.append(account)
-        return accounts
+    def change_pin(self, old_pin, new_pin, key):
+        if decrypt_message(self.pin, key) == old_pin:
+            self.pin = encrypt_message(new_pin, key)
+            print("PIN changed successfully.")
+        else:
+            print("Incorrect old PIN.")
 
+# Define a class to represent the ATM
+class ATM:
+    def __init__(self, key):
+        self.key = key
+        self.accounts = load_accounts(key)
 
-def validate_pin(pin):
-    """This function takes in the pin given by the user
-    and checks to make sure its length is 6.
+    def generate_account_number(self):
+        while True:
+            account_number = str(random.randint(1000000000, 9999999999))
+            if account_number not in self.accounts:
+                return account_number
 
-    Args:
-        pin (integer): The pin for the account.
+    def create_account(self):
+        account_number = self.generate_account_number()
+        print(f"Your new account number is {account_number}. Please save this number.")
 
-    Returns:
-        If the pin is correct, the login function loads the account.
-        If the pin is incorrect, the system lets the user know that the pin is incorrect.
-    """
-    # Verifies length of pin is 6 digits prints validations message and return True.
-    # Else returns False.
-    if len(pin) == 6:
-        print("Your PIN is valid")
-        return True
-    else:
-        return False
+        pin = input("Choose your PIN (4 digits): ")
+        while not (pin.isdigit() and len(pin) == 4):
+            print("Invalid PIN format. The PIN must be 4 digits.")
+            pin = input("Choose your PIN (4 digits): ")
 
+        confirm_pin = input("Confirm your PIN: ")
+        while pin != confirm_pin:
+            print("PINs do not match. Please try again.")
+            pin = input("Choose your PIN (4 digits): ")
+            confirm_pin = input("Confirm your PIN: ")
 
-def main_menu():
-    """This function prompts the user to make a selection check their balance,
-    make a deposit, or make a withdrawal.
+        encrypted_pin = encrypt_message(pin, self.key)
+        self.accounts[account_number] = {'pin': encrypted_pin, 'balance': 0}
+        save_accounts(self.accounts, self.key)
+        print("Account created successfully. Please remember your PIN and account number.")
 
-    Returns:
-        The action that user wants to do.
-    """
-    # Determines action taken by application.
-    action = input("Would you like to: \n"
-                "Check your balance (b),\n"
-                "Make a deposit (d),\n"
-                "Or make a withdrawal (w)?|n"
-                "Enter b, d, or w. \n")
-    return action
+    def verify_account(self, account_number, pin):
+        if account_number in self.accounts and decrypt_message(self.accounts[account_number]['pin'], self.key) == pin:
+            print("PIN verified successfully.")
+            return True
+        else:
+            print("Incorrect account number or PIN.")
+            return False
 
+    def attempt_login(self):
+        for _ in range(3):
+            user_account_number = input("Please enter your account number: ")
+            user_pin = input("Please enter your PIN: ")
+            if self.verify_account(user_account_number, user_pin):
+                return user_account_number
+            else:
+                print("Authentication failed. Please try again.")
+        print("Too many failed attempts. Returning to the main menu.")
+        return None
 
-def login():
-    """This function uses ask the user to enter their pin number.
-    The pin number is passed to the validate_pin function.
-    If the pin is valid, then the load_accounts function is called and
-    the dictionary of accounts is assigned the accounts variable.
-    A for loop verifies the pin against the listed accounts.
+    def execute_transaction(self, account_number):
+        account_data = self.accounts[account_number]
+        account = BankAccount(account_number, account_data['pin'], account_data['balance'])
+        while True:
+            choice = self.select_transaction()
+            if choice == "1":
+                amount = float(input("Enter the amount to deposit: "))
+                account.deposit(amount)
+            elif choice == "2":
+                amount = float(input("Enter the amount to withdraw: "))
+                account.withdraw(amount)
+            elif choice == "3":
+                account.show_balance()
+            elif choice == "4":
+                old_pin = input("Enter your current PIN: ")
+                new_pin = input("Enter your new PIN (4 digits): ")
+                confirm_new_pin = input("Confirm your new PIN: ")
+                if new_pin == confirm_new_pin and len(new_pin) == 4 and new_pin.isdigit():
+                    account.change_pin(old_pin, new_pin, self.key)
+                else:
+                    print("PINs do not match or invalid PIN format.")
+            elif choice == "5":
+                print("Thank you for using the ATM. Goodbye!")
+                break
+            else:
+                print("Invalid selection.")
+            self.accounts[account_number] = {'pin': account.pin, 'balance': account.balance}
+            save_accounts(self.accounts, self.key)
 
-    Returns:
-        The pin and balance of the account after the pin is validated.
-    """
-    # Calls validate_pin() function to confirm length.
-    pin = input("Please enter your pin:\n")
-    if not validate_pin(pin):
-        sys.exit("Sorry, your account PIN is not valid. It must be 6 digits in length.")
+    def select_transaction(self):
+        print("Please select a transaction:")
+        print("1: Deposit")
+        print("2: Withdraw")
+        print("3: Check Balance")
+        print("4: Change PIN")
+        print("5: Exit")
+        choice = input("Enter choice (1-5): ")
+        return choice
 
-    # If pin validates, calls load_accounts() and then verifies pin against accounts list.
-    # Returns account that matches pin.
-    accounts = load_accounts()
+# Main program starts here
+def main():
+    key = load_key()
+    atm = ATM(key)
 
-    for account in accounts:
-        if int(pin) == account["pin"]:
-            return account
-        # If no account was returned above, exit with an error
-
-    sys.exit(
-        "Sorry, your login was not successful. Please check your PIN and try again."
-    )
-
-
-def make_deposit(account):
-    """This function prompts the user to make a deposit.
-    If the amount is greater than 0.0 the balance was successful.
-    If the amount is less than 0.0 then the system ask the user to try again.
-
-    Args:
-        account (dict): The keys and values of the validated account.
-
-    Returns:
-        account (dict): The account balance after the deposit.
-    """
-    # Use input to determine the amount of the deposit
-    # Re-type amount from a string to a floating point number.
-    amount = input("How much would you like to deposit?\n")
-    amount = float(amount)
-
-  # Validates amount of deposit. If true processes deposit, else returns error.
-    if amount > 0.0:
-        account["balance"] = account["balance"] + amount
-        print("Your deposit was successful.")
-        return account
-
-    sys.exit("This is not a valid deposit amount. Please try again.")
-
-
-def make_withdrawal(account):
-    """This function prompts the user to make a withdrawal.
-    If the amount is less than or equal to 0.0 the withdrawal the system ask the user to try again.
-    If the amount is less than or equal to the account balance the withdrawal was successful.
-    Else the the withdrawal can't be made, and the system ask the user to try again.
-
-    Args:
-        account (dict): The keys and values of the validated account.
-
-    Returns:
-        account (dict): The account balance after the withdrawal.
-    """
-    # Use input to determine the amount of the withdrawal
-    # Re-type amount from a string to a floating point number.
-    amount = input("How much would you like to withdraw?\n")
-    amount = float(amount)
-
-    # Validates amount of withdrawal. If less than or equal to 0 system exits with error message.
-    if amount <= 0.0:
-        sys.exit("This is not a valid withdrawal amount. Please try again.")
-
-    # Validates if withdrawal amount is less than or equal to account balance, processes withdrawal and returns account.
-    # Else system exits with error messages indicating that the account is short of funds.
-    if amount <= account["balance"]:
-        account["balance"] = account["balance"] - amount
-        print("Your withdrawal was successful!")
-        return account
-    sys.exit(
-            "You do not have enough money in your account to make this withdrawal. Please try again."
-        )
-
-
-def run():
-    """This function starts the login process.
-    It calls the login function and assigns the verified account to the account variable.
-    Then, it calls the main_menU() function and ask the user what they want to do.
-    A conditional statement is sued to process the action
-    and calls the appropriate function based on the action.
-
-    Returns:
-        The adjusted balance after the action.
-
-    """
-    # Initiates login process. If pin verified, returns validated account.
-    account = login()
-
-    # Initiates ATM action: check balance, deposit or withdrawal.
-    action = main_menu()
-
-    # Processes the chosen action
-    if action == "b":
-        sys.exit(f"Your current account balance is {account['balance']}")
-    elif action == "d":
-        account = make_deposit(account)
-    elif action == "w":
-        account = make_withdrawal(account)
-
-    # Prints the adjusted balance.
-    print(
-        f"Thank you for using this ATM. Your adjusted balance is ${account['balance']: ,.2f}."
-    )
-
+    while True:
+        print("Welcome to the ATM")
+        print("1: Create an account")
+        print("2: Access your account")
+        print("3: Exit")
+        user_choice = input("Please select an option (1-3): ")
+        if user_choice == "1":
+            atm.create_account()
+        elif user_choice == "2":
+            user_account_number = atm.attempt_login()
+            if user_account_number:
+                atm.execute_transaction(user_account_number)
+        elif user_choice == "3":
+            print("Thank you for using the ATM. Goodbye!")
+            break
+        else:
+            print("Invalid selection. Please try again.")
 
 if __name__ == "__main__":
-    # Call the run function.
-    run()
+    main()
